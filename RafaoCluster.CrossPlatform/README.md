@@ -1,4 +1,4 @@
-# Rafao Cluster 0.4.0 — macOS e Linux
+# Rafao Cluster 0.4.1 — macOS e Linux
 
 Interface dark para configurar um coordenador `llama-server` e workers RPC do
 llama.cpp na mesma rede local. O aplicativo também diagnostica hardware/rede e
@@ -11,6 +11,8 @@ baixa modelos GGUF do Hugging Face.
 3. Na primeira abertura, clique com o botão direito no app e escolha **Abrir**.
 4. Instale o Homebrew, se ainda não existir. O botão **Instalar / atualizar
    llama.cpp** executa `brew install llama.cpp`; o backend Metal vem habilitado.
+   No papel de worker, o aplicativo também compila o `ggml-rpc-server` com
+   Metal, já que a fórmula do Homebrew não distribui esse executável.
 
 Este pacote é assinado localmente, mas não é notarizado com uma conta Apple
 Developer. Nunca desative o Gatekeeper para abri-lo.
