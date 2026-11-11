@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GpuClusterPilot/GpuClusterPilot.csproj" />
+  <Project Path="RafaoCluster.CrossPlatform/RafaoCluster.CrossPlatform.csproj" />
+</Solution>

@@ -1,0 +1,10 @@
+<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="RafaoCluster.CrossPlatform.ModelDownloadWindow" Title="Baixar GGUF" Width="700" Height="520" Background="#0B1020">
+ <Grid Margin="26" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" Background="#0B1020">
+  <StackPanel><TextBlock Text="Baixar modelo GGUF" FontSize="27" FontWeight="Bold"/><TextBlock Text="Informe o repositório do Hugging Face; Q4_K_M é um bom começo." Margin="0,6,0,0"/></StackPanel>
+  <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,22,0,14"><TextBox x:Name="RepoInput" Text="ggml-org/gemma-3-1b-it-GGUF"/><Button Grid.Column="1" Content="Consultar" Margin="8,0,0,0" Click="Search_Click"/></Grid>
+  <ComboBox x:Name="FileInput" Grid.Row="2" Margin="0,0,0,14"/>
+  <TextBlock x:Name="FolderText" Grid.Row="3" TextWrapping="Wrap" Margin="0,0,0,14"/>
+  <StackPanel Grid.Row="4"><TextBlock x:Name="StatusText" Text="Consulte o repositório para listar os GGUF." TextWrapping="Wrap"/><ProgressBar x:Name="Progress" Height="12" Margin="0,14,0,0" Minimum="0" Maximum="100"/></StackPanel>
+  <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="Cancelar" Classes="secondary" Margin="0,0,10,0" Click="Cancel_Click"/><Button x:Name="DownloadAction" Content="Baixar e selecionar" IsEnabled="False" Click="Download_Click"/></StackPanel>
+ </Grid>
+</Window>

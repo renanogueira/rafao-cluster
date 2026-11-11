@@ -1,0 +1,64 @@
+<Window x:Class="RafaoCluster.ModelDownloadWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Baixar modelo GGUF" Width="720" Height="590" MinWidth="650" MinHeight="540"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize" Background="#0B1020" Foreground="White">
+  <Grid Margin="26" Background="#0B1020">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <StackPanel>
+      <TextBlock Text="Baixar modelo GGUF" FontSize="27" FontWeight="Bold" />
+      <TextBlock Text="Escolha um repositório do Hugging Face e a quantização desejada. Q4_K_M é um bom ponto de partida." Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,6,0,0" />
+    </StackPanel>
+
+    <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,22,0,14">
+      <StackPanel>
+        <TextBlock Text="Repositório" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />
+        <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <TextBox x:Name="RepositoryInput" Text="ggml-org/gemma-3-1b-it-GGUF" />
+          <Button Grid.Column="1" x:Name="SearchButton" Content="Consultar arquivos" Margin="10,0,0,0" Click="Search_Click" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <StackPanel Grid.Row="2" Margin="0,0,0,14">
+      <TextBlock Text="Arquivo / quantização" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />
+      <ComboBox x:Name="FileInput" IsEnabled="False" />
+    </StackPanel>
+
+    <StackPanel Grid.Row="3" Margin="0,0,0,14">
+      <TextBlock Text="Pasta de destino" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <TextBox x:Name="DestinationInput" />
+        <Button Grid.Column="1" Content="Escolher…" Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" Click="ChooseFolder_Click" />
+      </Grid>
+    </StackPanel>
+
+    <StackPanel Grid.Row="4" Margin="0,0,0,14">
+      <TextBlock Text="Token do Hugging Face — opcional, somente para modelos restritos" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />
+      <PasswordBox x:Name="TokenInput" />
+    </StackPanel>
+
+    <Border Grid.Row="5" Background="#10172A" CornerRadius="12" Padding="16">
+      <StackPanel>
+        <TextBlock x:Name="StatusText" Text="Consulte o repositório para listar os arquivos GGUF." Foreground="{StaticResource Muted}" TextWrapping="Wrap" />
+        <ProgressBar x:Name="DownloadProgress" Height="10" Margin="0,14,0,0" Minimum="0" Maximum="100" Value="0" />
+      </StackPanel>
+    </Border>
+
+    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+      <Button Content="Cancelar" Style="{StaticResource SecondaryButton}" Margin="0,0,10,0" Click="Cancel_Click" />
+      <Button x:Name="DownloadButton" Content="Baixar e selecionar" IsEnabled="False" Click="Download_Click" />
+    </StackPanel>
+  </Grid>
+</Window>

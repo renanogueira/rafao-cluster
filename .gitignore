@@ -1,0 +1,30 @@
+# Build output
+**/bin/
+**/obj/
+outputs/
+artifacts/
+work/
+
+# IDEs and operating systems
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Local configuration and models
+settings.json
+*.gguf
+*.part
+models/
+
+# Signing material and secrets
+*.pfx
+*.p12
+*.cer
+*.key
+*.pem
+.env
+
