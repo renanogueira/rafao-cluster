@@ -55,8 +55,8 @@ rede.
 | Plataforma | Arquitetura | Aceleração | Aplicativo |
 |---|---|---|---|
 | Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.3.1 |
-| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.2 |
-| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.2 |
+| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.3 |
+| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.3 |
 
 > macOS Intel e Linux ARM64 ainda não possuem pacote pronto.
 

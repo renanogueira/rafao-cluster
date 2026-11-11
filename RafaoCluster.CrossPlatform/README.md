@@ -1,4 +1,4 @@
-# Rafao Cluster 0.4.2 — macOS e Linux
+# Rafao Cluster 0.4.3 — macOS e Linux
 
 Interface dark para configurar um coordenador `llama-server` e workers RPC do
 llama.cpp na mesma rede local. O aplicativo também diagnostica hardware/rede e

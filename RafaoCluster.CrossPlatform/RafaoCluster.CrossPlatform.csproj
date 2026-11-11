@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>RafaoCluster</AssemblyName>
     <RootNamespace>RafaoCluster.CrossPlatform</RootNamespace>
-    <Version>0.4.2</Version>
+    <Version>0.4.3</Version>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>

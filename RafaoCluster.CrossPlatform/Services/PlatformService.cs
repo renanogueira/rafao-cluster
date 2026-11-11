@@ -61,9 +61,26 @@ public sealed class PlatformService(ProcessRunner runner)
             .FirstOrDefault(File.Exists);
     }
 
-    private string? FindLocalBinary(string name) => Directory.Exists(LlamaRoot)
-        ? Directory.EnumerateFiles(LlamaRoot, name, SearchOption.AllDirectories).FirstOrDefault()
-        : null;
+    private string? FindLocalBinary(string name)
+    {
+        var searchRoots = new[]
+        {
+            LlamaRoot,
+            Path.Combine(DataRoot, "llama.cpp-rpc-build", "bin")
+        };
+
+        foreach (var root in searchRoots.Where(Directory.Exists))
+        {
+            var match = Directory.EnumerateFiles(root, name, SearchOption.AllDirectories)
+                .FirstOrDefault();
+            if (match is not null)
+            {
+                return match;
+            }
+        }
+
+        return null;
+    }
 
     public async Task<string> DiagnoseAsync()
     {
@@ -232,18 +249,13 @@ public sealed class PlatformService(ProcessRunner runner)
         }
 
         Directory.CreateDirectory(build);
-        var binaryDirectory = Path.Combine(LlamaRoot, "bin");
-        Directory.CreateDirectory(binaryDirectory);
-
         log("Configurando o worker RPC com Metal...");
         var (configureExitCode, configureOutput) = await runner.RunAsync(cmake, [
             "-S", source,
             "-B", build,
             "-DGGML_METAL=ON",
             "-DGGML_RPC=ON",
-            "-DCMAKE_BUILD_TYPE=Release",
-            $"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY={binaryDirectory}",
-            $"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={binaryDirectory}"
+            "-DCMAKE_BUILD_TYPE=Release"
         ]);
         log(configureOutput);
         if (configureExitCode != 0)
