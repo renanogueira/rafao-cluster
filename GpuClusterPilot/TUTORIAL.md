@@ -35,14 +35,16 @@ O log deve mostrar o servidor RPC escutando no IP dedicado e a GPU CUDA detectad
 ## 3. Baixar o primeiro GGUF automaticamente
 
 1. Ao lado de **Modelo GGUF**, clique em **Baixar GGUF**.
-2. Para o primeiro teste, use `ggml-org/gemma-3-1b-it-GGUF`.
-3. Clique em **Consultar arquivos**.
+2. Escolha um item no **Catálogo público e gratuito**. Comece pelo Gemma 3 1B para validar a rede; depois avance para Qwen3 14B ou modelos maiores para testar a distribuição.
+3. O repositório será preenchido automaticamente. Clique em **Consultar arquivos**.
 4. Escolha o arquivo `Q4_K_M`.
 5. Mantenha a pasta sugerida `C:\llama\models`.
 6. Deixe o token vazio para modelos públicos. Para modelos restritos, aceite a licença no Hugging Face e informe um token de leitura; o aplicativo não salva esse token.
 7. Clique em **Baixar e selecionar**.
 
 O download é feito diretamente do Hugging Face e o campo do modelo é preenchido quando termina. A documentação oficial recomenda downloads de arquivos específicos do Hub e permite uma pasta local; o aplicativo implementa esse fluxo para arquivos `.gguf`.
+
+O catálogo contém somente repositórios públicos e baixáveis sem token. A licença aparece ao lado de cada modelo. O campo de repositório continua editável para modelos fora da lista.
 
 ## 4. Executar o teste de dois nós
 

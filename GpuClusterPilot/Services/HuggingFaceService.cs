@@ -7,6 +7,18 @@ namespace RafaoCluster.Services;
 
 public sealed class HuggingFaceService
 {
+    public static IReadOnlyList<GgufCatalogModel> FreeCatalog { get; } =
+    [
+        new("Gemma 3 1B Instruct", "ggml-org/gemma-3-1b-it-GGUF", "0,8 GB", "teste rápido", "Gemma"),
+        new("Qwen3 4B", "Qwen/Qwen3-4B-GGUF", "2,5 GB", "PC modesto", "Apache 2.0"),
+        new("Qwen2.5 7B Instruct", "Qwen/Qwen2.5-7B-Instruct-GGUF", "4,7 GB", "chat geral", "Apache 2.0"),
+        new("DeepSeek R1 Distill Qwen 7B", "unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF", "4,7 GB", "raciocínio", "Apache 2.0"),
+        new("Qwen3 8B", "Qwen/Qwen3-8B-GGUF", "5,0 GB", "chat e raciocínio", "Apache 2.0"),
+        new("Qwen3 14B", "Qwen/Qwen3-14B-GGUF", "9 GB", "primeiro teste distribuído", "Apache 2.0"),
+        new("Mistral Small 3.1 24B", "bartowski/mistralai_Mistral-Small-3.1-24B-Instruct-2503-GGUF", "15 GB", "cluster intermediário", "Apache 2.0"),
+        new("Qwen3 32B", "Qwen/Qwen3-32B-GGUF", "20 GB", "cluster maior", "Apache 2.0")
+    ];
+
     private readonly HttpClient _http = new(new HttpClientHandler { AllowAutoRedirect = true })
     {
         Timeout = Timeout.InfiniteTimeSpan

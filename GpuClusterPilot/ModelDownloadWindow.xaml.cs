@@ -14,10 +14,22 @@ public partial class ModelDownloadWindow : Window
     {
         InitializeComponent();
         DestinationInput.Text = initialFolder;
+        CatalogInput.ItemsSource = HuggingFaceService.FreeCatalog;
+        CatalogInput.SelectedIndex = 0;
         Closed += (_, _) => _downloadCancellation?.Cancel();
     }
 
     private string Repository => RepositoryInput.Text.Trim();
+
+    private void CatalogInput_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (CatalogInput.SelectedItem is not GgufCatalogModel model) return;
+        RepositoryInput.Text = model.Repository;
+        StatusText.Text = $"{model.Name}: Q4 ≈ {model.EstimatedQ4Size}. {model.RecommendedFor}. Clique em Consultar arquivos.";
+        FileInput.ItemsSource = null;
+        FileInput.IsEnabled = false;
+        DownloadButton.IsEnabled = false;
+    }
 
     private async void Search_Click(object sender, RoutedEventArgs e)
     {

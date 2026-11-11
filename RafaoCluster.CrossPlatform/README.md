@@ -1,8 +1,12 @@
-# Rafao Cluster 0.4.5 — macOS e Linux
+# Rafao Cluster 0.4.6 — macOS e Linux
 
 Interface dark para configurar um coordenador `llama-server` e workers RPC do
 llama.cpp na mesma rede local. O aplicativo também diagnostica hardware/rede e
 baixa modelos GGUF do Hugging Face.
+
+O downloader inclui um catálogo de modelos públicos e gratuitos, ordenado do
+menor para o maior, com tamanho Q4 estimado, finalidade e licença. O campo de
+repositório permanece editável para downloads manuais.
 
 O painel de execução acompanha conexão RPC, dispositivo, buffers remotos e
 grafos processados. Quando a contagem aumenta, o worker está participando da
