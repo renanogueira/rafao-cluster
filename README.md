@@ -56,9 +56,9 @@ rede.
 
 | Plataforma | Arquitetura | Aceleração | Aplicativo |
 |---|---|---|---|
-| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.4.6 |
-| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.6 |
-| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.6 |
+| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.4.7 |
+| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.7 |
+| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.7 |
 
 > macOS Intel e Linux ARM64 ainda não possuem pacote pronto.
 
@@ -156,7 +156,7 @@ dedicada ao cluster.
 
 Todos os computadores do cluster precisam executar exatamente a mesma revisão
 do `llama.cpp`; alcançar a porta TCP não é suficiente para garantir um
-handshake compatível. A versão 0.4.6 fixa Windows, macOS e Linux na build
+handshake compatível. A versão 0.4.7 fixa Windows, macOS e Linux na build
 `b12110` (commit `cd959ba`). Ao atualizar o Rafão Cluster, pare todos os
 processos, clique em **Instalar / atualizar** em cada nó e só então reinicie os
 workers e o coordenador.

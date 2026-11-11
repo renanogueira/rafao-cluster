@@ -80,18 +80,23 @@ public sealed class HuggingFaceService
                 throw new InvalidOperationException("Download bloqueado. Confirme o acesso ao modelo e o token.");
             response.EnsureSuccessStatusCode();
             var total = response.Content.Headers.ContentLength;
-            await using var input = await response.Content.ReadAsStreamAsync(cancellationToken);
-            await using var output = new FileStream(partial, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024, true);
-            var buffer = new byte[1024 * 1024];
-            long downloaded = 0;
-            int read;
-            while ((read = await input.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
+            await using (var input = await response.Content.ReadAsStreamAsync(cancellationToken))
+            await using (var output = new FileStream(partial, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024, true))
             {
-                await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
-                downloaded += read;
-                progress.Report((downloaded, total));
+                var buffer = new byte[1024 * 1024];
+                long downloaded = 0;
+                int read;
+                while ((read = await input.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
+                {
+                    await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                    downloaded += read;
+                    progress.Report((downloaded, total));
+                }
+                await output.FlushAsync(cancellationToken);
             }
-            await output.FlushAsync(cancellationToken);
+
+            // O Windows mantém bloqueio exclusivo enquanto o FileStream está aberto.
+            // A movimentação só pode ocorrer depois que ambos os streams forem descartados.
             File.Move(partial, destination, true);
             return destination;
         }
