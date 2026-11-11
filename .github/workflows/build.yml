@@ -15,18 +15,18 @@ jobs:
     name: Windows x64
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 8.0.x
       - run: dotnet build GpuClusterPilot/GpuClusterPilot.csproj -c Release
 
   macos:
     name: macOS arm64
-    runs-on: macos-14
+    runs-on: macos-15-intel
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
       - run: dotnet publish RafaoCluster.CrossPlatform/RafaoCluster.CrossPlatform.csproj -c Release -r osx-arm64 --self-contained true
@@ -35,8 +35,8 @@ jobs:
     name: Linux x64
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
       - run: dotnet publish RafaoCluster.CrossPlatform/RafaoCluster.CrossPlatform.csproj -c Release -r linux-x64 --self-contained true

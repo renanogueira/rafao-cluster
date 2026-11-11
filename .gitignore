@@ -18,7 +18,6 @@ Thumbs.db
 settings.json
 *.gguf
 *.part
-models/
 
 # Signing material and secrets
 *.pfx
