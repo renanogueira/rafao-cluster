@@ -3,6 +3,8 @@ using RafaoCluster.Services;
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Windows;
 
 namespace RafaoCluster;
@@ -17,6 +19,11 @@ public partial class MainWindow : Window
     private ClusterSettings _settings = new();
     private Process? _activeProcess;
     private bool _isCoordinator = true;
+    private CancellationTokenSource? _telemetryCancellation;
+    private int _remoteGraphCount;
+    private double _rpcAllocatedMiB;
+    private static readonly Regex AllocationPattern = new(@"\[alloc_buffer\].*?size:\s*([0-9.]+)\s*(MiB|GiB)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex DevicePattern = new(@"CUDA\d+:\s*([^\(]+)\s*\((\d+) MiB,\s*(\d+) MiB free", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public MainWindow()
     {
@@ -188,20 +195,30 @@ public partial class MainWindow : Window
                 if (FourthInput.Text.StartsWith("Ativ", StringComparison.OrdinalIgnoreCase)) args.Add("--cache");
             }
 
+            ResetTelemetry();
             Log($"Iniciando {Path.GetFileName(executable)}...");
-            _activeProcess = _runner.StartLongRunning(executable, args, Log);
+            IReadOnlyDictionary<string, string>? rpcDebug = _isCoordinator
+                ? null
+                : new Dictionary<string, string> { ["GGML_RPC_DEBUG"] = "1" };
+            _activeProcess = _runner.StartLongRunning(executable, args, Log, rpcDebug);
             _activeProcess.EnableRaisingEvents = true;
             _activeProcess.Exited += (_, _) => Dispatcher.Invoke(() =>
             {
                 Log("Processo encerrado.");
+                StopTelemetry("○ Encerrado");
                 StartButton.IsEnabled = true;
                 StopButton.IsEnabled = false;
             });
             StartButton.IsEnabled = false;
             StopButton.IsEnabled = true;
+            if (!_isCoordinator) StartGpuTelemetry();
             await SaveSettings();
         }
-        catch (Exception ex) { ShowError(ex); }
+        catch (Exception ex)
+        {
+            StopTelemetry("● Erro");
+            ShowError(ex);
+        }
     }
 
     private void Stop_Click(object sender, RoutedEventArgs e) => StopActiveProcess();
@@ -219,6 +236,7 @@ public partial class MainWindow : Window
         catch { }
         finally
         {
+            StopTelemetry("○ Parado");
             _activeProcess?.Dispose();
             _activeProcess = null;
             if (IsLoaded)
@@ -272,9 +290,107 @@ public partial class MainWindow : Window
 
     private void Log(string message) => Dispatcher.Invoke(() =>
     {
-        LogBox.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
-        LogBox.ScrollToEnd();
+        UpdateRpcTelemetry(message);
+        if (!message.Contains("[graph_compute]", StringComparison.OrdinalIgnoreCase) &&
+            !message.Contains("[alloc_buffer]", StringComparison.OrdinalIgnoreCase))
+        {
+            LogBox.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}\n");
+            LogBox.ScrollToEnd();
+        }
     });
+
+    private void ResetTelemetry()
+    {
+        _telemetryCancellation?.Cancel();
+        _telemetryCancellation = new CancellationTokenSource();
+        _remoteGraphCount = 0;
+        _rpcAllocatedMiB = 0;
+        RpcTelemetry.Text = _isCoordinator ? "◌ Iniciando servidor" : "● Ouvindo conexões";
+        GpuTelemetry.Text = _isCoordinator ? "Workers RPC" : ThirdInput.Text.Trim();
+        VramTelemetry.Text = "—";
+        WorkTelemetry.Text = _isCoordinator ? "Carregando modelo" : "Aguardando coordenador";
+    }
+
+    private void StopTelemetry(string rpcStatus)
+    {
+        _telemetryCancellation?.Cancel();
+        _telemetryCancellation = null;
+        RpcTelemetry.Text = rpcStatus;
+    }
+
+    private void UpdateRpcTelemetry(string message)
+    {
+        if (message.Contains("listening on", StringComparison.OrdinalIgnoreCase))
+            RpcTelemetry.Text = "● Ouvindo na rede";
+        if (message.Contains("client connected", StringComparison.OrdinalIgnoreCase))
+        {
+            RpcTelemetry.Text = "● Coordenador conectado";
+            WorkTelemetry.Text = "Conectado · aguardando cálculo";
+        }
+
+        var device = DevicePattern.Match(message);
+        if (device.Success)
+        {
+            GpuTelemetry.Text = device.Groups[1].Value.Trim();
+            VramTelemetry.Text = $"{device.Groups[3].Value}/{device.Groups[2].Value} MiB livres";
+        }
+
+        var allocation = AllocationPattern.Match(message);
+        if (allocation.Success && double.TryParse(allocation.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var size))
+        {
+            if (allocation.Groups[2].Value.Equals("GiB", StringComparison.OrdinalIgnoreCase)) size *= 1024;
+            _rpcAllocatedMiB += size;
+            WorkTelemetry.Text = $"{_rpcAllocatedMiB:0} MiB alocados via RPC";
+        }
+
+        if (message.Contains("[graph_compute]", StringComparison.OrdinalIgnoreCase))
+        {
+            _remoteGraphCount++;
+            RpcTelemetry.Text = "● Coordenador conectado";
+            WorkTelemetry.Text = $"● Calculando · {_remoteGraphCount} grafos";
+        }
+    }
+
+    private void StartGpuTelemetry()
+    {
+        var cancellation = _telemetryCancellation ??= new CancellationTokenSource();
+        _ = Task.Run(async () =>
+        {
+            while (!cancellation.IsCancellationRequested)
+            {
+                try
+                {
+                    var (_, output) = await _runner.RunAsync("nvidia-smi", [
+                        "--query-gpu=index,name,memory.used,memory.total,utilization.gpu",
+                        "--format=csv,noheader,nounits"
+                    ], cancellationToken: cancellation.Token);
+                    var selectedIndex = ThirdInput.Text.Trim().StartsWith("CUDA", StringComparison.OrdinalIgnoreCase)
+                        ? ThirdInput.Text.Trim()[4..]
+                        : "0";
+                    var rows = output.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(line => line.Split(',').Select(value => value.Trim()).ToArray())
+                        .ToArray();
+                    var fields = rows.FirstOrDefault(row => row.Length >= 5 && row[0] == selectedIndex) ?? rows.FirstOrDefault();
+                    if (fields is { Length: >= 5 })
+                    {
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            GpuTelemetry.Text = $"GPU {fields[0]} · {fields[1]}";
+                            VramTelemetry.Text = $"{fields[2]}/{fields[3]} MiB · {fields[4]}%";
+                        });
+                    }
+                }
+                catch (OperationCanceledException) { break; }
+                catch
+                {
+                    await Dispatcher.InvokeAsync(() => VramTelemetry.Text = "Telemetria indisponível");
+                }
+
+                try { await Task.Delay(TimeSpan.FromSeconds(2), cancellation.Token); }
+                catch (OperationCanceledException) { break; }
+            }
+        }, cancellation.Token);
+    }
 
     private void SetBusy(bool busy)
     {

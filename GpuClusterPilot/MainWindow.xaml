@@ -121,6 +121,32 @@
                   <Button x:Name="StopButton" Content="Parar" Background="{StaticResource Danger}" Margin="8,0,0,0" IsEnabled="False" Click="Stop_Click" />
                 </StackPanel>
               </DockPanel>
+              <Border Background="#0B1020" BorderBrush="#283654" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,14,0,0">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*" />
+                    <ColumnDefinition Width="1.8*" />
+                    <ColumnDefinition Width="1.4*" />
+                    <ColumnDefinition Width="1.6*" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="RPC" Foreground="{StaticResource Muted}" FontSize="11" />
+                    <TextBlock x:Name="RpcTelemetry" Text="○ Parado" FontWeight="SemiBold" Margin="0,3,0,0" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                    <TextBlock Text="GPU" Foreground="{StaticResource Muted}" FontSize="11" />
+                    <TextBlock x:Name="GpuTelemetry" Text="Aguardando diagnóstico" FontWeight="SemiBold" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" ToolTip="GPU usada pelo worker" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Margin="14,0,0,0">
+                    <TextBlock Text="VRAM / USO" Foreground="{StaticResource Muted}" FontSize="11" />
+                    <TextBlock x:Name="VramTelemetry" Text="—" FontWeight="SemiBold" Margin="0,3,0,0" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="3" Margin="14,0,0,0">
+                    <TextBlock Text="INFERÊNCIA REMOTA" Foreground="{StaticResource Muted}" FontSize="11" />
+                    <TextBlock x:Name="WorkTelemetry" Text="Aguardando" FontWeight="SemiBold" Margin="0,3,0,0" />
+                  </StackPanel>
+                </Grid>
+              </Border>
               <TextBox x:Name="LogBox" Height="165" Margin="0,14,0,0" IsReadOnly="True"
                        FontFamily="Cascadia Mono,Consolas" FontSize="12" TextWrapping="Wrap"
                        VerticalScrollBarVisibility="Auto" AcceptsReturn="True" />

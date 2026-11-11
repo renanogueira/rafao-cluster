@@ -51,7 +51,9 @@ O download é feito diretamente do Hugging Face e o campo do modelo é preenchid
 3. O programa testa primeiro se cada worker responde pela rede.
 4. Aguarde o log indicar que o modelo foi carregado e o servidor está pronto.
 5. Abra `http://127.0.0.1:8080` no navegador do coordenador.
-6. Envie uma mensagem curta e acompanhe `nvidia-smi` ou o Gerenciador de Tarefas nos dois computadores.
+6. Envie uma mensagem curta e acompanhe o painel **Execução** do worker. Ele mostra a GPU, VRAM utilizada, utilização instantânea e a contagem de grafos executados, sem precisar abrir `nvidia-smi` ou o Gerenciador de Tarefas.
+
+O indicador **Calculando** e o aumento da contagem de grafos são a confirmação de que a GPU remota participou da inferência. A utilização pode voltar momentaneamente a 0% entre tokens sem indicar falha.
 
 ## 5. Passar para um modelo maior
 

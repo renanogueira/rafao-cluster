@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>RafaoCluster</AssemblyName>
     <RootNamespace>RafaoCluster</RootNamespace>
-    <Version>0.4.4</Version>
+    <Version>0.4.5</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 </Project>

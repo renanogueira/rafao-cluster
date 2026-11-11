@@ -40,7 +40,11 @@ public sealed class ProcessRunner
         return (process.ExitCode, output.ToString());
     }
 
-    public Process StartLongRunning(string fileName, IEnumerable<string> arguments, Action<string> onLine)
+    public Process StartLongRunning(
+        string fileName,
+        IEnumerable<string> arguments,
+        Action<string> onLine,
+        IReadOnlyDictionary<string, string>? environment = null)
     {
         var info = new ProcessStartInfo(fileName)
         {
@@ -51,6 +55,9 @@ public sealed class ProcessRunner
         };
         foreach (var argument in arguments)
             info.ArgumentList.Add(argument);
+        if (environment is not null)
+            foreach (var variable in environment)
+                info.Environment[variable.Key] = variable.Value;
 
         var process = new Process { StartInfo = info, EnableRaisingEvents = true };
         process.OutputDataReceived += (_, e) => { if (e.Data is not null) onLine(e.Data); };
