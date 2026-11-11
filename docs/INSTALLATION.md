@@ -36,9 +36,9 @@ Não é necessário executá-lo permanentemente como administrador.
 2. Mova o aplicativo para `/Applications`.
 3. Na primeira abertura, use botão direito → **Abrir**.
 4. Autorize conexões locais caso o firewall pergunte.
-5. Use **Instalar / atualizar** dentro do aplicativo. Se o Mac estiver como
-   worker, a primeira instalação também compilará o `ggml-rpc-server` com Metal
-   e poderá levar alguns minutos.
+5. Use **Instalar / atualizar** dentro do aplicativo. Na primeira instalação,
+   ele compilará `llama-server` e `ggml-rpc-server` com Metal e RPC habilitados;
+   isso poderá levar alguns minutos.
 
 O `llama.cpp` usa Metal por padrão no macOS. O pacote ainda não é notarizado;
 não desative o Gatekeeper para contornar a primeira abertura.

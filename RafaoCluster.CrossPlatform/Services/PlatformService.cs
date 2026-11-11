@@ -16,8 +16,17 @@ public sealed class PlatformService(ProcessRunner runner)
 
     public string LlamaRoot => Path.Combine(DataRoot, "llama");
     public string ModelsRoot => Path.Combine(DataRoot, "models");
+    private string MacBuildVersionFile => Path.Combine(LlamaRoot, "mac-rpc-version.txt");
     public bool IsMac => OperatingSystem.IsMacOS();
     public bool IsLinux => OperatingSystem.IsLinux();
+
+    public bool CoordinatorInstalled => IsMac
+        ? FindLocalBinary("llama-server") is not null && File.Exists(MacBuildVersionFile)
+        : Find("llama-server") is not null;
+
+    public bool WorkerInstalled =>
+        FindLocalBinary("ggml-rpc-server") is not null ||
+        (!IsMac && Find("rpc-server") is not null);
 
     public string PlatformName => IsMac
         ? $"macOS {RuntimeInformation.OSArchitecture}"
@@ -25,14 +34,10 @@ public sealed class PlatformService(ProcessRunner runner)
 
     public string? Find(string name)
     {
-        if (Directory.Exists(LlamaRoot))
+        var local = FindLocalBinary(name);
+        if (local is not null)
         {
-            var local = Directory.EnumerateFiles(LlamaRoot, name, SearchOption.AllDirectories)
-                .FirstOrDefault();
-            if (local is not null)
-            {
-                return local;
-            }
+            return local;
         }
 
         var searchDirectories = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
@@ -55,6 +60,10 @@ public sealed class PlatformService(ProcessRunner runner)
             .Select(directory => Path.Combine(directory, name))
             .FirstOrDefault(File.Exists);
     }
+
+    private string? FindLocalBinary(string name) => Directory.Exists(LlamaRoot)
+        ? Directory.EnumerateFiles(LlamaRoot, name, SearchOption.AllDirectories).FirstOrDefault()
+        : null;
 
     public async Task<string> DiagnoseAsync()
     {
@@ -103,19 +112,19 @@ public sealed class PlatformService(ProcessRunner runner)
         return string.Join("\n", lines.Where(line => !string.IsNullOrWhiteSpace(line)));
     }
 
-    public async Task InstallAsync(Action<string> log, bool requireRpc)
+    public async Task InstallAsync(Action<string> log)
     {
         Directory.CreateDirectory(LlamaRoot);
         if (IsMac)
         {
-            await InstallMacAsync(log, requireRpc);
+            await InstallMacAsync(log);
             return;
         }
 
         await InstallLinuxRelease(log);
     }
 
-    private async Task InstallMacAsync(Action<string> log, bool requireRpc)
+    private async Task InstallMacAsync(Action<string> log)
     {
         var brew = File.Exists("/opt/homebrew/bin/brew")
             ? "/opt/homebrew/bin/brew"
@@ -139,22 +148,31 @@ public sealed class PlatformService(ProcessRunner runner)
             throw new FileNotFoundException("O Homebrew terminou, mas llama-server não foi encontrado.");
         }
 
-        if (requireRpc && Find("ggml-rpc-server") is null)
+        var (versionExitCode, versionOutput) = await runner.RunAsync(
+            brew,
+            ["list", "--versions", "llama.cpp"]);
+        var version = versionOutput
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Skip(1)
+            .FirstOrDefault();
+        if (versionExitCode != 0 || string.IsNullOrWhiteSpace(version))
         {
-            var (versionExitCode, versionOutput) = await runner.RunAsync(
-                brew,
-                ["list", "--versions", "llama.cpp"]);
-            var version = versionOutput
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Skip(1)
-                .FirstOrDefault();
-            if (versionExitCode != 0 || string.IsNullOrWhiteSpace(version))
-            {
-                throw new InvalidOperationException("Não foi possível identificar a versão do llama.cpp instalada pelo Homebrew.");
-            }
-
-            await InstallMacRpcAsync(brew, "v" + version, log);
+            throw new InvalidOperationException("Não foi possível identificar a versão do llama.cpp instalada pelo Homebrew.");
         }
+
+        var versionTag = "v" + version;
+        var installedVersion = File.Exists(MacBuildVersionFile)
+            ? (await File.ReadAllTextAsync(MacBuildVersionFile)).Trim()
+            : string.Empty;
+        if (FindLocalBinary("llama-server") is not null &&
+            FindLocalBinary("ggml-rpc-server") is not null &&
+            installedVersion == versionTag)
+        {
+            log($"Backend RPC com Metal {versionTag} já está instalado.");
+            return;
+        }
+
+        await InstallMacRpcAsync(brew, versionTag, log);
     }
 
     private async Task InstallMacRpcAsync(string brew, string versionTag, Action<string> log)
@@ -233,20 +251,23 @@ public sealed class PlatformService(ProcessRunner runner)
             throw new InvalidOperationException("O CMake não conseguiu configurar o worker RPC.");
         }
 
-        log("Compilando ggml-rpc-server; isso pode levar alguns minutos...");
+        log("Compilando llama-server e ggml-rpc-server com suporte RPC; isso pode levar alguns minutos...");
         var (buildExitCode, buildOutput) = await runner.RunAsync(cmake, [
             "--build", build,
             "--config", "Release",
-            "--target", "ggml-rpc-server",
+            "--target", "llama-server", "ggml-rpc-server",
             "--parallel", Math.Max(2, Environment.ProcessorCount).ToString()
         ]);
         log(buildOutput);
-        if (buildExitCode != 0 || Find("ggml-rpc-server") is null)
+        if (buildExitCode != 0 ||
+            FindLocalBinary("llama-server") is null ||
+            FindLocalBinary("ggml-rpc-server") is null)
         {
-            throw new InvalidOperationException("A compilação do worker RPC não foi concluída.");
+            throw new InvalidOperationException("A compilação do backend RPC não foi concluída.");
         }
 
-        log("Worker RPC com Metal instalado.");
+        await File.WriteAllTextAsync(MacBuildVersionFile, versionTag);
+        log("llama-server e worker RPC com Metal instalados.");
     }
 
     private async Task InstallLinuxRelease(Action<string> log)

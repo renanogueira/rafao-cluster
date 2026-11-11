@@ -55,8 +55,8 @@ rede.
 | Plataforma | Arquitetura | Aceleração | Aplicativo |
 |---|---|---|---|
 | Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.3.1 |
-| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.1 |
-| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.1 |
+| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.2 |
+| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.2 |
 
 > macOS Intel e Linux ARM64 ainda não possuem pacote pronto.
 
@@ -84,9 +84,9 @@ Requisitos: Windows 10/11 x64, placa NVIDIA e driver recente.
 3. Na primeira vez, clique com o botão direito no aplicativo e escolha
    **Abrir**.
 4. Instale o [Homebrew](https://brew.sh/) caso ainda não esteja disponível. O
-   botão **Instalar / atualizar** executará `brew install llama.cpp`. No papel
-   de worker, ele também compila automaticamente o servidor RPC com Metal,
-   porque esse binário não está incluído na fórmula do Homebrew.
+   botão **Instalar / atualizar** executará `brew install llama.cpp` e compilará
+   `llama-server` e `ggml-rpc-server` com Metal e RPC habilitados. A fórmula do
+   Homebrew não fornece uma compilação utilizável para o cluster distribuído.
 
 O pacote atual possui assinatura local, mas ainda não é notarizado. Não
 desative o Gatekeeper.
