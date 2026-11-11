@@ -119,6 +119,8 @@ public partial class MainWindow : Window
     {
         try
         {
+            if (_activeProcess is { HasExited: false })
+                throw new InvalidOperationException("Pare o coordenador/worker antes de atualizar o llama.cpp.");
             SetBusy(true);
             Log("Instalando llama.cpp. Isto pode levar alguns minutos...");
             var tag = await _installer.InstallLatestCuda12Async(_settings.LlamaRoot, Log);

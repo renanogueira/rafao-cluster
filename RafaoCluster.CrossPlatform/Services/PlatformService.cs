@@ -10,6 +10,7 @@ namespace RafaoCluster.CrossPlatform.Services;
 
 public sealed class PlatformService(ProcessRunner runner)
 {
+    public const string CompatibleBuildTag = "b12110";
     public string DataRoot { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "RafaoCluster");
@@ -17,16 +18,19 @@ public sealed class PlatformService(ProcessRunner runner)
     public string LlamaRoot => Path.Combine(DataRoot, "llama");
     public string ModelsRoot => Path.Combine(DataRoot, "models");
     private string MacBuildVersionFile => Path.Combine(LlamaRoot, "mac-rpc-version.txt");
+    private string PinnedBuildRoot => Path.Combine(LlamaRoot, "builds", CompatibleBuildTag);
+    private string LinuxBuildVersionFile => Path.Combine(PinnedBuildRoot, "llama-build.txt");
     public bool IsMac => OperatingSystem.IsMacOS();
     public bool IsLinux => OperatingSystem.IsLinux();
 
     public bool CoordinatorInstalled => IsMac
-        ? FindLocalBinary("llama-server") is not null && File.Exists(MacBuildVersionFile)
-        : Find("llama-server") is not null;
+        ? FindLocalBinary("llama-server") is not null && HasExpectedVersion(MacBuildVersionFile)
+        : FindPinnedBinary("llama-server") is not null && HasExpectedVersion(LinuxBuildVersionFile);
 
-    public bool WorkerInstalled =>
-        FindLocalBinary("ggml-rpc-server") is not null ||
-        (!IsMac && Find("rpc-server") is not null);
+    public bool WorkerInstalled => IsMac
+        ? FindLocalBinary("ggml-rpc-server") is not null && HasExpectedVersion(MacBuildVersionFile)
+        : (FindPinnedBinary("ggml-rpc-server") is not null || FindPinnedBinary("rpc-server") is not null) &&
+          HasExpectedVersion(LinuxBuildVersionFile);
 
     public string PlatformName => IsMac
         ? $"macOS {RuntimeInformation.OSArchitecture}"
@@ -65,6 +69,7 @@ public sealed class PlatformService(ProcessRunner runner)
     {
         var searchRoots = new[]
         {
+            Path.Combine(LlamaRoot, "builds", CompatibleBuildTag),
             LlamaRoot,
             Path.Combine(DataRoot, "llama.cpp-rpc-build", "bin")
         };
@@ -80,6 +85,22 @@ public sealed class PlatformService(ProcessRunner runner)
         }
 
         return null;
+    }
+
+    private string? FindPinnedBinary(string name) => Directory.Exists(PinnedBuildRoot)
+        ? Directory.EnumerateFiles(PinnedBuildRoot, name, SearchOption.AllDirectories).FirstOrDefault()
+        : null;
+
+    private static bool HasExpectedVersion(string marker)
+    {
+        try
+        {
+            return File.Exists(marker) && File.ReadAllText(marker).Trim() == CompatibleBuildTag;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<string> DiagnoseAsync()
@@ -165,19 +186,7 @@ public sealed class PlatformService(ProcessRunner runner)
             throw new FileNotFoundException("O Homebrew terminou, mas llama-server não foi encontrado.");
         }
 
-        var (versionExitCode, versionOutput) = await runner.RunAsync(
-            brew,
-            ["list", "--versions", "llama.cpp"]);
-        var version = versionOutput
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Skip(1)
-            .FirstOrDefault();
-        if (versionExitCode != 0 || string.IsNullOrWhiteSpace(version))
-        {
-            throw new InvalidOperationException("Não foi possível identificar a versão do llama.cpp instalada pelo Homebrew.");
-        }
-
-        var versionTag = "v" + version;
+        var versionTag = CompatibleBuildTag;
         var installedVersion = File.Exists(MacBuildVersionFile)
             ? (await File.ReadAllTextAsync(MacBuildVersionFile)).Trim()
             : string.Empty;
@@ -285,55 +294,50 @@ public sealed class PlatformService(ProcessRunner runner)
     private async Task InstallLinuxRelease(Action<string> log)
     {
         using var http = new HttpClient();
-        http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("RafaoCluster", "0.4.1"));
-        var json = await http.GetStringAsync("https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=20");
+        http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("RafaoCluster", "0.4.4"));
+        var json = await http.GetStringAsync(
+            $"https://api.github.com/repos/ggml-org/llama.cpp/releases/tags/{CompatibleBuildTag}");
         using var document = JsonDocument.Parse(json);
-
-        foreach (var release in document.RootElement.EnumerateArray())
+        var release = document.RootElement;
+        var assets = release.GetProperty("assets").EnumerateArray().ToList();
+        var cuda = Find("nvidia-smi") is not null;
+        var expectedName = cuda
+            ? $"llama-{CompatibleBuildTag}-bin-ubuntu-cuda-12.8-x64.tar.gz"
+            : $"llama-{CompatibleBuildTag}-bin-ubuntu-x64.tar.gz";
+        var asset = assets.FirstOrDefault(item =>
+            item.GetProperty("name").GetString() == expectedName);
+        if (asset.ValueKind == JsonValueKind.Undefined)
         {
-            var assets = release.GetProperty("assets").EnumerateArray().ToList();
-            var cuda = Find("nvidia-smi") is not null;
-            var asset = assets.FirstOrDefault(item =>
-            {
-                var name = item.GetProperty("name").GetString() ?? string.Empty;
-                return cuda
-                    ? name.Contains("bin-ubuntu-cuda-12") && name.EndsWith("-x64.tar.gz")
-                    : name.Contains("bin-ubuntu-x64.tar.gz");
-            });
-
-            if (asset.ValueKind == JsonValueKind.Undefined)
-            {
-                continue;
-            }
-
-            await Extract(http, asset, log);
-            if (cuda)
-            {
-                var runtime = assets.FirstOrDefault(item =>
-                {
-                    var name = item.GetProperty("name").GetString() ?? string.Empty;
-                    return name.Contains("cudart-") &&
-                           name.Contains("ubuntu-cuda-12") &&
-                           name.EndsWith("-x64.tar.gz");
-                });
-                if (runtime.ValueKind != JsonValueKind.Undefined)
-                {
-                    await Extract(http, runtime, log);
-                }
-            }
-
-            return;
+            throw new InvalidOperationException($"A release {CompatibleBuildTag} não contém {expectedName}.");
         }
 
-        throw new InvalidOperationException("Release Linux compatível não encontrada.");
+        var installRoot = Path.Combine(LlamaRoot, "builds", CompatibleBuildTag);
+        Directory.CreateDirectory(installRoot);
+        log($"Instalando build compatível fixada: {CompatibleBuildTag}");
+        await Extract(http, asset, installRoot, log);
+        if (cuda)
+        {
+            var runtimeName = $"cudart-llama-{CompatibleBuildTag}-bin-ubuntu-cuda-12.8-x64.tar.gz";
+            var runtime = assets.FirstOrDefault(item =>
+                item.GetProperty("name").GetString() == runtimeName);
+            if (runtime.ValueKind == JsonValueKind.Undefined)
+                throw new InvalidOperationException($"A release {CompatibleBuildTag} não contém {runtimeName}.");
+            await Extract(http, runtime, installRoot, log);
+        }
+
+        await File.WriteAllTextAsync(Path.Combine(installRoot, "llama-build.txt"), CompatibleBuildTag);
     }
 
-    private async Task Extract(HttpClient http, JsonElement asset, Action<string> log)
+    private static async Task Extract(
+        HttpClient http,
+        JsonElement asset,
+        string destination,
+        Action<string> log)
     {
         var name = asset.GetProperty("name").GetString()!;
         log("Baixando " + name);
         await using var input = await http.GetStreamAsync(asset.GetProperty("browser_download_url").GetString());
         using var gzip = new GZipStream(input, CompressionMode.Decompress);
-        TarFile.ExtractToDirectory(gzip, LlamaRoot, true);
+        TarFile.ExtractToDirectory(gzip, destination, true);
     }
 }

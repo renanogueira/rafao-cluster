@@ -54,9 +54,9 @@ rede.
 
 | Plataforma | Arquitetura | Aceleração | Aplicativo |
 |---|---|---|---|
-| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.3.1 |
-| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.3 |
-| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.3 |
+| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.4.4 |
+| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.4 |
+| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.4 |
 
 > macOS Intel e Linux ARM64 ainda não possuem pacote pronto.
 
@@ -149,6 +149,15 @@ O roteiro detalhado está em **[Configurando o cluster](docs/CLUSTER-GUIDE.md)**
 Prefira cabo, switch compatível e IPs estáveis. Não crie redirecionamento de
 porta no roteador. Para uma instalação permanente, considere uma VLAN ou NIC
 dedicada ao cluster.
+
+## Compatibilidade RPC
+
+Todos os computadores do cluster precisam executar exatamente a mesma revisão
+do `llama.cpp`; alcançar a porta TCP não é suficiente para garantir um
+handshake compatível. A versão 0.4.4 fixa Windows, macOS e Linux na build
+`b12110` (commit `cd959ba`). Ao atualizar o Rafão Cluster, pare todos os
+processos, clique em **Instalar / atualizar** em cada nó e só então reinicie os
+workers e o coordenador.
 
 ## Compilar do código-fonte
 

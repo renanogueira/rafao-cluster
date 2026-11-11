@@ -31,6 +31,10 @@ ping 192.168.0.11
 7. Restrinja o firewall ao IP do coordenador.
 8. Clique em **Iniciar worker**.
 
+Repita **Instalar / atualizar** depois de qualquer atualização do Rafão Cluster.
+Coordenador e workers precisam usar a mesma build do `llama.cpp`; a versão
+0.4.4 usa `b12110` em todas as plataformas.
+
 Mantenha o aplicativo aberto e confira no log se o servidor RPC está
 escutando no IP correto.
 
