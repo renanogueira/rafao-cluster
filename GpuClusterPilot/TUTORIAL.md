@@ -30,7 +30,7 @@ O log deve mostrar o servidor RPC escutando no IP dedicado e a GPU CUDA detectad
 2. Selecione **Coordenador**.
 3. Clique em **Diagnosticar**.
 4. Clique em **Instalar / atualizar**.
-5. Em **Workers**, informe `10.77.0.11:50052`. Para vários workers, use vírgulas: `10.77.0.11:50052,10.77.0.12:50052`.
+5. Com os workers iniciados, clique em **Encontrar** para preencher a lista automaticamente. Como alternativa, informe `10.77.0.11:50052`; para vários workers manuais, use vírgulas: `10.77.0.11:50052,10.77.0.12:50052`.
 
 Para executar somente neste computador, deixe **Workers** vazio. O coordenador usará a GPU local; quando houver endereços na lista, ele combinará a GPU local com os workers RPC.
 
@@ -85,7 +85,7 @@ O tamanho do arquivo não é o único consumo: contexto, KV cache e buffers tamb
 1. Repita a preparação de Worker em uma máquina por vez.
 2. Use IP exclusivo em cada uma.
 3. Pare o coordenador.
-4. Acrescente o novo `IP:50052` à lista.
+4. Clique em **Encontrar** novamente ou acrescente o novo `IP:50052` à lista.
 5. Inicie novamente e confirme que o teste TCP passa para todos.
 
 ## Solução rápida de problemas

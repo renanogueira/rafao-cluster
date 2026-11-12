@@ -75,7 +75,11 @@
               </Grid.ColumnDefinitions>
               <StackPanel>
                 <TextBlock x:Name="PrimaryLabel" Text="Workers opcionais (vazio = somente este PC)" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />
-                <TextBox x:Name="PrimaryInput" Text="" />
+                <Grid>
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                  <TextBox x:Name="PrimaryInput" Text="" />
+                  <Button x:Name="DiscoverWorkersButton" Grid.Column="1" Content="⌕ Encontrar" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Click="DiscoverWorkers_Click" />
+                </Grid>
               </StackPanel>
               <StackPanel Grid.Column="2">
                 <TextBlock x:Name="SecondaryLabel" Text="Modelo GGUF" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />

@@ -42,7 +42,8 @@ escutando no IP correto.
 
 1. Escolha **Coordenador**.
 2. Instale ou atualize o `llama.cpp`.
-3. Em **Workers**, informe `192.168.0.11:50052`.
+3. Em **Workers**, clique em **Encontrar** para localizar automaticamente os
+   workers ativos. Se preferir, informe manualmente `192.168.0.11:50052`.
 4. Clique em **Baixar GGUF**.
 5. Para o primeiro teste, use um modelo pequeno e uma quantização `Q4_K_M`.
 6. Mantenha contexto `4096` e API `8080`.

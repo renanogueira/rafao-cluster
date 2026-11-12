@@ -31,6 +31,7 @@ comandos de cada máquina.
 - catálogo de modelos GGUF públicos e gratuitos, com tamanho Q4 estimado, uso indicado e licença;
 - distribuição do modelo por camadas entre GPUs locais e remotas;
 - execução local sem workers quando a lista RPC fica vazia;
+- descoberta automática de workers ativos nas redes IPv4 locais;
 - teste TCP de cada worker antes de carregar o modelo;
 - telemetria integrada de conexão RPC, GPU, VRAM, utilização e grafos executados;
 - API compatível com OpenAI exposta apenas em `127.0.0.1` por padrão;
@@ -57,9 +58,9 @@ rede.
 
 | Plataforma | Arquitetura | Aceleração | Aplicativo |
 |---|---|---|---|
-| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.4.8 |
-| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.8 |
-| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.8 |
+| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.4.9 |
+| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.9 |
+| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.9 |
 
 > macOS Intel e Linux ARM64 ainda não possuem pacote pronto.
 
@@ -119,8 +120,9 @@ Supondo que os computadores estejam na rede `192.168.0.x`:
    `192.168.0.11`.
 2. No worker, selecione **Worker**, informe `192.168.0.11`, mantenha a porta
    `50052`, instale o `llama.cpp` e inicie.
-3. No coordenador, selecione **Coordenador** e informe
-   `192.168.0.11:50052`.
+3. No coordenador, selecione **Coordenador** e clique em **Encontrar** para
+   preencher automaticamente os workers ativos. Também é possível informar
+   manualmente `192.168.0.11:50052`.
 4. Clique em **Baixar GGUF**, escolha um modelo pequeno para o piloto e use uma
    quantização `Q4_K_M`.
 5. Mantenha contexto `4096`, API `8080` e clique em **Iniciar coordenador**.
@@ -157,7 +159,7 @@ dedicada ao cluster.
 
 Todos os computadores do cluster precisam executar exatamente a mesma revisão
 do `llama.cpp`; alcançar a porta TCP não é suficiente para garantir um
-handshake compatível. A versão 0.4.8 fixa Windows, macOS e Linux na build
+handshake compatível. A versão 0.4.9 fixa Windows, macOS e Linux na build
 `b12110` (commit `cd959ba`). Ao atualizar o Rafão Cluster, pare todos os
 processos, clique em **Instalar / atualizar** em cada nó e só então reinicie os
 workers e o coordenador.

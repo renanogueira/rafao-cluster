@@ -26,7 +26,7 @@ nc -vz 192.168.0.11 50052
 Esse erro indica que coordenador e worker executam revisões diferentes do
 `llama.cpp`, mesmo que a porta TCP responda. Pare os processos, atualize o Rafão
 Cluster em todos os computadores, execute **Instalar / atualizar** em cada nó e
-reinicie primeiro os workers. A versão 0.4.4 fixa todos os sistemas na build
+reinicie primeiro os workers. A versão 0.4.9 fixa todos os sistemas na build
 `b12110`.
 
 ## A GPU não aparece

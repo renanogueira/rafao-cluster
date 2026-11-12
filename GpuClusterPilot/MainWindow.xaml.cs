@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly SettingsService _settingsService = new();
     private readonly LlamaInstallerService _installer = new();
     private readonly FirewallService _firewall = new();
+    private readonly NetworkDiscoveryService _networkDiscovery = new();
     private ClusterSettings _settings = new();
     private Process? _activeProcess;
     private bool _isCoordinator = true;
@@ -59,6 +60,7 @@ public partial class MainWindow : Window
         FourthLabel.Text = coordinator ? "Contexto" : "Cache local";
         BrowseButton.Visibility = coordinator ? Visibility.Visible : Visibility.Collapsed;
         DownloadModelButton.Visibility = coordinator ? Visibility.Visible : Visibility.Collapsed;
+        DiscoverWorkersButton.Visibility = coordinator ? Visibility.Visible : Visibility.Collapsed;
         FirewallButton.Visibility = coordinator ? Visibility.Collapsed : Visibility.Visible;
         StartButton.Content = coordinator ? "Iniciar coordenador" : "Iniciar worker";
 
@@ -80,6 +82,43 @@ public partial class MainWindow : Window
     }
 
     private async void Scan_Click(object sender, RoutedEventArgs e) => await ScanHardware();
+
+    private async void DiscoverWorkers_Click(object sender, RoutedEventArgs e)
+    {
+        if (!int.TryParse(RpcPortInput.Text, out var port) || port is < 1 or > 65535)
+        {
+            ShowError("Porta RPC inválida.");
+            return;
+        }
+
+        DiscoverWorkersButton.IsEnabled = false;
+        DiscoverWorkersButton.Content = "Procurando…";
+        try
+        {
+            Log($"Procurando workers na rede local pela porta {port}...");
+            var discovered = await _networkDiscovery.FindWorkersAsync(port);
+            var existing = PrimaryInput.Text
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var endpoints = existing.Concat(discovered)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(endpoint => endpoint, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            PrimaryInput.Text = string.Join(',', endpoints);
+            Log(discovered.Count == 0
+                ? "Nenhum worker novo foi encontrado. Confirme se estão iniciados e liberados no firewall."
+                : $"{discovered.Count} worker(s) encontrado(s): {string.Join(", ", discovered)}");
+            await SaveSettings();
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex);
+        }
+        finally
+        {
+            DiscoverWorkersButton.Content = "⌕ Encontrar";
+            DiscoverWorkersButton.IsEnabled = true;
+        }
+    }
 
     private async Task ScanHardware()
     {
