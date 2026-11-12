@@ -30,6 +30,7 @@ comandos de cada máquina.
 - download e seleção automática de modelos GGUF do Hugging Face;
 - catálogo de modelos GGUF públicos e gratuitos, com tamanho Q4 estimado, uso indicado e licença;
 - distribuição do modelo por camadas entre GPUs locais e remotas;
+- execução local sem workers quando a lista RPC fica vazia;
 - teste TCP de cada worker antes de carregar o modelo;
 - telemetria integrada de conexão RPC, GPU, VRAM, utilização e grafos executados;
 - API compatível com OpenAI exposta apenas em `127.0.0.1` por padrão;
@@ -56,9 +57,9 @@ rede.
 
 | Plataforma | Arquitetura | Aceleração | Aplicativo |
 |---|---|---|---|
-| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.4.7 |
-| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.7 |
-| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.7 |
+| Windows 10/11 | x64 | NVIDIA CUDA | WPF 0.4.8 |
+| macOS 13+ | Apple Silicon arm64 | Metal | Avalonia 0.4.8 |
+| Ubuntu/Debian | x64 | NVIDIA CUDA 12 ou CPU | Avalonia 0.4.8 |
 
 > macOS Intel e Linux ARM64 ainda não possuem pacote pronto.
 
@@ -156,7 +157,7 @@ dedicada ao cluster.
 
 Todos os computadores do cluster precisam executar exatamente a mesma revisão
 do `llama.cpp`; alcançar a porta TCP não é suficiente para garantir um
-handshake compatível. A versão 0.4.7 fixa Windows, macOS e Linux na build
+handshake compatível. A versão 0.4.8 fixa Windows, macOS e Linux na build
 `b12110` (commit `cd959ba`). Ao atualizar o Rafão Cluster, pare todos os
 processos, clique em **Instalar / atualizar** em cada nó e só então reinicie os
 workers e o coordenador.

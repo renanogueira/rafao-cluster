@@ -74,7 +74,7 @@
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
               <StackPanel>
-                <TextBlock x:Name="PrimaryLabel" Text="Workers (IP:porta, separados por vírgula)" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />
+                <TextBlock x:Name="PrimaryLabel" Text="Workers opcionais (vazio = somente este PC)" Foreground="{StaticResource Muted}" Margin="0,0,0,7" />
                 <TextBox x:Name="PrimaryInput" Text="" />
               </StackPanel>
               <StackPanel Grid.Column="2">

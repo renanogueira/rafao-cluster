@@ -53,7 +53,7 @@ public partial class MainWindow : Window
         PageSubtitle.Text = coordinator
             ? "Este PC organiza as GPUs e expõe a API somente localmente."
             : "Este PC empresta sua GPU apenas ao coordenador autorizado.";
-        PrimaryLabel.Text = coordinator ? "Workers (IP:porta, separados por vírgula)" : "IP dedicado deste worker";
+        PrimaryLabel.Text = coordinator ? "Workers opcionais (vazio = somente este PC)" : "IP dedicado deste worker";
         SecondaryLabel.Text = coordinator ? "Modelo GGUF" : "IP autorizado do coordenador";
         ThirdLabel.Text = coordinator ? "Porta da API" : "Dispositivo";
         FourthLabel.Text = coordinator ? "Contexto" : "Cache local";
@@ -179,11 +179,11 @@ public partial class MainWindow : Window
                 if (!int.TryParse(ThirdInput.Text, out var apiPort) || !int.TryParse(FourthInput.Text, out var context))
                     throw new InvalidOperationException("Porta da API ou contexto inválido.");
                 var endpoints = PrimaryInput.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (endpoints.Length == 0) throw new InvalidOperationException("Informe pelo menos um worker.");
                 await ValidateWorkers(endpoints);
-                args = ["--model", SecondaryInput.Text, "--rpc", string.Join(',', endpoints), "--split-mode", "layer",
+                args = ["--model", SecondaryInput.Text, "--split-mode", "layer",
                     "--n-gpu-layers", "all", "--fit", "on", "--fit-target", "1536", "--ctx-size", context.ToString(),
                     "--parallel", "1", "--host", "127.0.0.1", "--port", apiPort.ToString()];
+                if (endpoints.Length > 0) args.AddRange(["--rpc", string.Join(',', endpoints)]);
             }
             else
             {
@@ -306,7 +306,9 @@ public partial class MainWindow : Window
         _remoteGraphCount = 0;
         _rpcAllocatedMiB = 0;
         RpcTelemetry.Text = _isCoordinator ? "◌ Iniciando servidor" : "● Ouvindo conexões";
-        GpuTelemetry.Text = _isCoordinator ? "Workers RPC" : ThirdInput.Text.Trim();
+        GpuTelemetry.Text = _isCoordinator
+            ? (string.IsNullOrWhiteSpace(PrimaryInput.Text) ? "GPU local" : "GPU local + workers RPC")
+            : ThirdInput.Text.Trim();
         VramTelemetry.Text = "—";
         WorkTelemetry.Text = _isCoordinator ? "Carregando modelo" : "Aguardando coordenador";
     }

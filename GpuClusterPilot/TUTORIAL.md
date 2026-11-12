@@ -32,6 +32,8 @@ O log deve mostrar o servidor RPC escutando no IP dedicado e a GPU CUDA detectad
 4. Clique em **Instalar / atualizar**.
 5. Em **Workers**, informe `10.77.0.11:50052`. Para vários workers, use vírgulas: `10.77.0.11:50052,10.77.0.12:50052`.
 
+Para executar somente neste computador, deixe **Workers** vazio. O coordenador usará a GPU local; quando houver endereços na lista, ele combinará a GPU local com os workers RPC.
+
 ## 3. Baixar o primeiro GGUF automaticamente
 
 1. Ao lado de **Modelo GGUF**, clique em **Baixar GGUF**.
